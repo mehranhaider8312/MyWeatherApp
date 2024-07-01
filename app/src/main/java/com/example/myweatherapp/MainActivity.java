@@ -199,10 +199,12 @@ public class MainActivity extends AppCompatActivity {
                     for(int i=0;i<hourlyForecastArray.length();i++){
                         JSONObject hourObj = hourlyForecastArray.getJSONObject(i);
                         String time = hourObj.getString("time");
-                        String temp = hourObj.getString("");
-                        String time = hourObj.getString("time");
+                        String temp = hourObj.getString("temp_c");
+                        String iconUrl = hourObj.getJSONObject("condition").getString("icon");
+                        String windSpeed = hourObj.getString("wind_kph");
+                        weatherArrayList.add(new Weather(time,temp,iconUrl,windSpeed));
                     }
-
+                adapter.notifyDataSetChnaged();
                 } catch (JSONException e) {
                     throw new RuntimeException(e);
                 }
