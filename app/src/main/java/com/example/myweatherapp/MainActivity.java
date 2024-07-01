@@ -62,36 +62,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        init();
-        
-    }
-    public void init()
-    {
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_main);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
 
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
                 ,WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
-
-        rlHome = findViewById(R.id.rlHome);
-        pbLoading = findViewById(R.id.pbLoading);
-        tvCityName = findViewById(R.id.tvCityName);
-        tvTemperature = findViewById(R.id.tvTemperature);
-        tvCondition = findViewById(R.id.tvCondition);
-        etCity = findViewById(R.id.etCity);
-        ivBack = findViewById(R.id.ivBack);
-        ivIcon = findViewById(R.id.ivIcon);
-        ivSearch = findViewById(R.id.ivSearch);
-        rvForecasts = findViewById(R.id.rvForecasts);
-        weatherArrayList = new ArrayList<>();
-        adapter = new WeatherAdapter(this,weatherArrayList);
-        rvForecasts.setAdapter(adapter);
-
+        
+        init();
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
@@ -121,9 +96,31 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        
+    }
+    public void init()
+    {
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_main);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
 
-
-
+        rlHome = findViewById(R.id.rlHome);
+        pbLoading = findViewById(R.id.pbLoading);
+        tvCityName = findViewById(R.id.tvCityName);
+        tvTemperature = findViewById(R.id.tvTemperature);
+        tvCondition = findViewById(R.id.tvCondition);
+        etCity = findViewById(R.id.etCity);
+        ivBack = findViewById(R.id.ivBack);
+        ivIcon = findViewById(R.id.ivIcon);
+        ivSearch = findViewById(R.id.ivSearch);
+        rvForecasts = findViewById(R.id.rvForecasts);
+        weatherArrayList = new ArrayList<>();
+        adapter = new WeatherAdapter(this,weatherArrayList);
+        rvForecasts.setAdapter(adapter);
     }
 
     @Override
