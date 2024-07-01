@@ -197,7 +197,10 @@ public class MainActivity extends AppCompatActivity {
                     JSONArray hourlyForecastArray = forcastDay.getJSONArray("hour");
 
                     for(int i=0;i<hourlyForecastArray.length();i++){
-                        JSONObject hourobj = hourlyForecastArray.getJSONObject(i);
+                        JSONObject hourObj = hourlyForecastArray.getJSONObject(i);
+                        String time = hourObj.getString("time");
+                        String temp = hourObj.getString("");
+                        String time = hourObj.getString("time");
                     }
 
                 } catch (JSONException e) {
