@@ -2,6 +2,9 @@ package com.example.myweatherapp;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -10,8 +13,10 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -20,6 +25,7 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.graphics.Insets;
@@ -33,6 +39,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.squareup.picasso.Picasso;
 
@@ -49,44 +56,54 @@ public class MainActivity extends AppCompatActivity {
 
     RelativeLayout rlHome;
     ProgressBar pbLoading;
-    TextView tvCityName,tvTemperature,tvCondition;
+    TextView tvCityName, tvTemperature, tvCondition;
     TextInputEditText etCity;
-    ImageView ivBack,ivIcon,ivSearch;
+    ImageView ivBack, ivIcon, ivSearch;
     RecyclerView rvForecasts;
     ArrayList<Weather> weatherArrayList;
     WeatherAdapter adapter;
     LocationManager locationManager;
     int PERMISSION_CODE = 1;
     String cityName;
+    Button btnCuisine;
+    FloatingActionButton fabForecast;
+    SharedPreferences sPref;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-                ,WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
-        
+                , WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+
         init();
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-        if(ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)!=PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION)!= PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION},PERMISSION_CODE);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_CODE);
+        } else {
+            Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+
+            if (location != null) {
+                cityName = getCityName(location.getLatitude(), location.getLongitude());
+                getWeatherInfo(cityName);
+            } else {
+                // If location is null, request location updates
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+            }
         }
-
-        Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-        assert location != null;
-        cityName = getCityName(location.getLatitude(),location.getLongitude());
-
         getWeatherInfo(cityName);
-
+        SharedPreferences.Editor editor = sPref.edit();
+        editor.putString("city_from_location",cityName);
+        editor.apply();
         ivSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String city = etCity.getText().toString().trim();
-                if(TextUtils.isEmpty(city))
-                {
+                if (TextUtils.isEmpty(city)) {
                     etCity.setError("City Name cannot be Empty");
                     return;
                 }
@@ -96,10 +113,81 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        
+        fabForecast.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, Predictions.class));
+                finish();
+            }
+        });
+        btnCuisine.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                TextView time, temperature, windSpeed, food;
+                AlertDialog.Builder foodAlert = new AlertDialog.Builder(MainActivity.this);
+                foodAlert.setTitle("Food to try in this Weather");
+                View alertView = LayoutInflater.from(MainActivity.this)
+                        .inflate(R.layout.food_suggestion_view, null, false);
+                time = alertView.findViewById(R.id.tvAlertTime);
+                temperature = alertView.findViewById(R.id.tvAlertTemperature);
+                windSpeed = alertView.findViewById(R.id.tvAlertWindSpeed);
+                food = alertView.findViewById(R.id.tvAlertFood);
+
+                time.setText(weatherArrayList.get(0).getTime());
+                temperature.setText(weatherArrayList.get(0).getTemperature());
+                windSpeed.setText(weatherArrayList.get(0).getWindSpeed());
+                double temp = Double.parseDouble(weatherArrayList.get(0).getTemperature());
+                if (temp < 0) {
+                    food.setText("its too cold man\n" +
+                            "you should try some Soups or \n" +
+                            "Tea/Coffee with Some Dry Fruits");
+                } else if (temp > 0 && temp < 20) {
+                    food.setText("its a cold temperature\n" +
+                            "You should try vegetable pakora with mint chatni\n" +
+                            "Gajjar ka halwa bhee theek ha bhai");
+                } else if (temp > 20 && temp < 30) {
+                    food.setText("This is a Mild temperature\n" +
+                            "You should try leafy vegies\n" +
+                            "Any kind of rice will be a great Option\n" +
+                            "with some Pepsi(Kamal Ka Taste ha Yrrrrr)");
+                } else if (temp > 30 && temp < 40) {
+                    food.setText("Bhai Grami ha kuch thanda Kha" +
+                            "\nShakes Peo Juices Peo\n" +
+                            "Hmain Duaon main yaad rakho");
+                } else if (temp < 40 && temp > 50) {
+                    food.setText("Garmi Barh Rahi ha Bhai\n" +
+                            "Fresh Ganna ki Roo peo\nThandi Thandi Ace Creame khaoo" +
+                            "\nZinda Rahna ha to ghr main AC pa he batho");
+                } else {
+                    food.setText("Bhai Tujha Salam Ha\n" +
+                            "to is garmi main bhee zinda ha\n" +
+                            "Northeren ka trip plan kr\n" +
+                            "Rana Waqas Sahab jaa raha hain unka sath chala ja\n" +
+                            "Khana Main tu baraf he khaoo ab");
+                }
+                foodAlert.setPositiveButton("Ok :)", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                });
+                foodAlert.setView(alertView);
+                foodAlert.show();
+            }
+        });
     }
-    public void init()
-    {
+
+    private final android.location.LocationListener locationListener = new android.location.LocationListener() {
+        @Override
+        public void onLocationChanged(@NonNull Location location) {
+            cityName = getCityName(location.getLatitude(), location.getLongitude());
+            getWeatherInfo(cityName);
+            // Remove the location updates to save battery
+            locationManager.removeUpdates(this);
+        }
+    };
+
+    public void init() {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -119,50 +207,50 @@ public class MainActivity extends AppCompatActivity {
         ivSearch = findViewById(R.id.ivSearch);
         rvForecasts = findViewById(R.id.rvForecasts);
         weatherArrayList = new ArrayList<>();
-        adapter = new WeatherAdapter(this,weatherArrayList);
+        adapter = new WeatherAdapter(this, weatherArrayList);
         rvForecasts.setAdapter(adapter);
+        btnCuisine = findViewById(R.id.btnCuisine);
+        fabForecast = findViewById(R.id.fabPredicition);
+        sPref = getPreferences(MODE_PRIVATE);
+
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if(requestCode == PERMISSION_CODE){
-            if(grantResults.length >0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+        if (requestCode == PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(this, "Permissions Granted..", Toast.LENGTH_SHORT).show();
-            }
-            else{
+            } else {
                 Toast.makeText(this, "Provide Permissions First....", Toast.LENGTH_SHORT).show();
                 finish();
             }
         }
     }
 
-    private String getCityName(double lat, double lang)
-    {
-        String cityName = "Null";
+    private String getCityName(double lat, double lng) {
+        String cityName = "Unknown";
         Geocoder geocoder = new Geocoder(getBaseContext(), Locale.getDefault());
-        try{
-            List<Address> addresses = geocoder.getFromLocation(lat,lang,10);
-
-            assert addresses != null;
-            for(Address adr : addresses){
-                if(adr!=null){
-                    String city = adr.getLocality();
-                    if(city!=null && city.isEmpty()){
-                        cityName = city;
-                    }else{
-                        Toast.makeText(this, "City Entered Not Found", Toast.LENGTH_SHORT).show();
-                    }
+        try {
+            List<Address> addresses = geocoder.getFromLocation(lat, lng, 1);
+            if (addresses != null && !addresses.isEmpty()) {
+                Address address = addresses.get(0);
+                if (address.getLocality() != null) {
+                    cityName = address.getLocality();
+                } else {
+                    Toast.makeText(this, "City not found", Toast.LENGTH_SHORT).show();
                 }
             }
-        }catch(IOException exp) {
-            Toast.makeText(this, exp.getMessage(), Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
         return cityName;
     }
 
-    private void getWeatherInfo(String cityName){
-        String url = "http://api.weatherapi.com/v1/forecast.json?key=&q="+cityName+"&days=1&aqi=yes&alerts=yes";
+
+
+    private void getWeatherInfo(String cityName) {
+        String url = "https://api.weatherapi.com/v1/forecast.json?key=2d67c27fc92e49f88bc113407240307&q=" + cityName + "&days=1&aqi=yes&alerts=yes";
         tvCityName.setText(cityName);
         RequestQueue requestQueue = Volley.newRequestQueue(MainActivity.this);
 
@@ -172,46 +260,49 @@ public class MainActivity extends AppCompatActivity {
                 pbLoading.setVisibility(View.GONE);
                 rlHome.setVisibility(View.VISIBLE);
                 weatherArrayList.clear();
-
                 try {
                     String temperature = response.getJSONObject("current").getString("temp_c");
-                    tvTemperature.setText(temperature+"°C");
+                    tvTemperature.setText(temperature + "°C");
                     int isDay = response.getJSONObject("current").getInt("is_day");
                     String condition = response.getJSONObject("current").getJSONObject("condition").getString("text");
                     String conditionIcon = response.getJSONObject("current").getJSONObject("condition").getString("icon");
-                    Picasso.get().load("http:"+conditionIcon).into(ivIcon);
+                    String iconUrl = "https:" + conditionIcon;
+                    Log.d("WeatherApp", "Icon URL: " + iconUrl);
+                    Picasso.get().load(iconUrl).into(ivIcon);
                     tvCondition.setText(condition);
-                    if(isDay==1){
-                        //morning
+
+                    if (isDay == 1) {
+                        // morning
                         Picasso.get().load("https://www.freepik.com/free-photo/3d-maple-tree-against-sunset-sky_4498736.htm#fromView=search&page=1&position=4&uuid=feb3ea1d-47fa-47de-aa28-06ec615b1254").into(ivBack);
-                    }
-                    else{
-                        //night
+                    } else {
+                        // night
                         Picasso.get().load("https://www.freepik.com/free-photo/3d-tree-against-moon-night-sky_3336334.htm#query=night%20wallpaper&position=3&from_view=keyword&track=ais_user&uuid=7a70ccaf-9956-450c-b15c-72268d65f62c").into(ivBack);
                     }
-                JSONObject forcastOBJ = response.getJSONObject("forecast");
-                    JSONObject forcastDay = forcastOBJ.getJSONArray("forecastday").getJSONObject(0);
-                    JSONArray hourlyForecastArray = forcastDay.getJSONArray("hour");
 
-                    for(int i=0;i<hourlyForecastArray.length();i++){
+                    JSONObject forecastObj = response.getJSONObject("forecast");
+                    JSONObject forecastDay = forecastObj.getJSONArray("forecastday").getJSONObject(0);
+                    JSONArray hourlyForecastArray = forecastDay.getJSONArray("hour");
+
+                    for (int i = 0; i < hourlyForecastArray.length(); i++) {
                         JSONObject hourObj = hourlyForecastArray.getJSONObject(i);
                         String time = hourObj.getString("time");
                         String temp = hourObj.getString("temp_c");
-                        String iconUrl = hourObj.getJSONObject("condition").getString("icon");
                         String windSpeed = hourObj.getString("wind_kph");
-                        weatherArrayList.add(new Weather(time,temp,iconUrl,windSpeed));
+                        String hourIconUrl = "https:" + hourObj.getJSONObject("condition").getString("icon");
+                        weatherArrayList.add(new Weather(time, temp, hourIconUrl, windSpeed));
                     }
-                adapter.notifyDataSetChnaged();
+                    adapter.notifyDataSetChanged();
                 } catch (JSONException e) {
-                    throw new RuntimeException(e);
+                    Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Toast.makeText(MainActivity.this, "Enter a Valid city Name", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+
         requestQueue.add(jsonObjectRequest);
     }
 }
