@@ -2,6 +2,7 @@ package com.example.myweatherapp;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -30,15 +31,15 @@ public class Predictions extends AppCompatActivity {
     WeatherPredictionAdapter adapter;
     ArrayList<Forecast> predictionsList;
     SharedPreferences sPref;
+    private static final String TAG = "Predictions";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-       init();
-
+        init();
     }
-    public void init(){
 
+    public void init() {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_predictions);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -46,26 +47,29 @@ public class Predictions extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        sPref = getPreferences(MODE_PRIVATE);
+        sPref = getSharedPreferences("mylocationfile",MODE_PRIVATE);
         lvPredictions = findViewById(R.id.lvPredictionsList);
         predictionsList = new ArrayList<>();
         loadData();
-        adapter = new WeatherPredictionAdapter(Predictions.this,predictionsList);
-        lvPredictions.setAdapter(adapter);
+
     }
+
     public void loadData() {
         String cityName = sPref.getString("city_from_location", "");
+        Log.d(TAG, "City name: " + cityName);
         Toast.makeText(this, cityName, Toast.LENGTH_SHORT).show();
-        String url = "https://api.weatherapi.com/v1/forecast.json?key=2d67c27fc92e49f88bc113407240307&q="+cityName+"&days=15&aqi=yes&alerts=yes";
+        String url = "https://api.weatherapi.com/v1/forecast.json?key=2d67c27fc92e49f88bc113407240307&q="+cityName+"&days=10&aqi=yes&alerts=yes";
 
         RequestQueue requestQueue = Volley.newRequestQueue(this);
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(url,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
+                           // Toast.makeText(Predictions.this, response.toString(), Toast.LENGTH_SHORT).show();
+                            Log.d(TAG, "Response: " + response.toString());
                             JSONArray forecastDays = response.getJSONObject("forecast").getJSONArray("forecastday");
-
+                            Forecast forecast;
                             for (int i = 0; i < forecastDays.length(); i++) {
                                 JSONObject dayObj = forecastDays.getJSONObject(i);
                                 String date = dayObj.getString("date");
@@ -73,26 +77,28 @@ public class Predictions extends AppCompatActivity {
                                 String iconURL = dayObj.getJSONObject("day").getJSONObject("condition").getString("icon");
                                 String temperature = dayObj.getJSONObject("day").getString("avgtemp_c");
 
-                                Forecast forecast = new Forecast(date, condition, iconURL, temperature);
+                                forecast = new Forecast(date, condition, iconURL, temperature);
                                 predictionsList.add(forecast);
+                                Log.d(TAG, "Record #. "+i+" : "+forecast.toString());
                             }
-                            adapter.notifyDataSetChanged(); // Notify adapter of data change
+                            adapter = new WeatherPredictionAdapter(Predictions.this, predictionsList);
+                            lvPredictions.setAdapter(adapter);
+                            //adapter.notifyDataSetChanged();
+
+                             // Notify adapter of data change
                         } catch (JSONException e) {
+                            Log.e(TAG, "Error parsing JSON", e);
                             Toast.makeText(Predictions.this, "Error parsing JSON", Toast.LENGTH_SHORT).show();
-                            e.printStackTrace();
                         }
                     }
                 },
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        // Display the exact error message from Volley
+                        Log.e(TAG, "Error fetching data: " + error.getMessage(), error);
                         Toast.makeText(Predictions.this, "Error fetching data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                        error.printStackTrace();
                     }
                 });
-
         requestQueue.add(jsonObjectRequest);
     }
-
 }

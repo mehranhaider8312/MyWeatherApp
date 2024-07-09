@@ -47,4 +47,14 @@ public class Forecast {
     public void setTemperature(String temperature) {
         this.temperature = temperature;
     }
+
+    @Override
+    public String toString() {
+        return "Forecast{" +
+                "date='" + date + '\'' +
+                ", condition='" + condition + '\'' +
+                ", iconURL='" + iconURL + '\'' +
+                ", temperature='" + temperature + '\'' +
+                '}';
+    }
 }

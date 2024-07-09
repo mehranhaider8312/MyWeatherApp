@@ -161,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     food.setText("Bhai Tujha Salam Ha\n" +
                             "to is garmi main bhee zinda ha\n" +
-                            "Northeren ka trip plan kr\n" +
+                            "Northern ka trip plan kr\n" +
                             "Rana Waqas Sahab jaa raha hain unka sath chala ja\n" +
                             "Khana Main tu baraf he khaoo ab");
                 }
@@ -182,7 +182,7 @@ public class MainActivity extends AppCompatActivity {
         public void onLocationChanged(@NonNull Location location) {
             cityName = getCityName(location.getLatitude(), location.getLongitude());
             getWeatherInfo(cityName);
-            // Remove the location updates to save battery
+            // Remove the location
             locationManager.removeUpdates(this);
         }
     };
@@ -211,7 +211,7 @@ public class MainActivity extends AppCompatActivity {
         rvForecasts.setAdapter(adapter);
         btnCuisine = findViewById(R.id.btnCuisine);
         fabForecast = findViewById(R.id.fabPredicition);
-        sPref = getPreferences(MODE_PRIVATE);
+        sPref = getSharedPreferences("mylocationfile",MODE_PRIVATE);
 
     }
 
