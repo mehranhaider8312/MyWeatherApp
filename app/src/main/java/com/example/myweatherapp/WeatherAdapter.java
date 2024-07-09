@@ -42,7 +42,7 @@ public class WeatherAdapter extends RecyclerView.Adapter<WeatherAdapter.ViewHold
         Weather weather = weathersList.get(position);
 
         holder.tvTemperature.setText(weather.getTemperature()+"°C");
-        Picasso.get().load("http:"+weather.getIcon()).into(holder.ivCondition);
+        Picasso.get().load("https:"+weather.getIcon()).into(holder.ivCondition);
         SimpleDateFormat inSDF = new SimpleDateFormat("yyyy-MM-dd hh:mm");
         SimpleDateFormat outSDF = new SimpleDateFormat("hh:mm aa");
         try{

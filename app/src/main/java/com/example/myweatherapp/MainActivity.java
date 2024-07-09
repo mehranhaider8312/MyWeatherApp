@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -107,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
                     etCity.setError("City Name cannot be Empty");
                     return;
                 }
-
+                cityName = city;
                 tvCityName.setText(city);
                 getWeatherInfo(city);
             }
@@ -272,11 +273,9 @@ public class MainActivity extends AppCompatActivity {
                     tvCondition.setText(condition);
 
                     if (isDay == 1) {
-                        // morning
-                        Picasso.get().load("https://www.freepik.com/free-photo/3d-maple-tree-against-sunset-sky_4498736.htm#fromView=search&page=1&position=4&uuid=feb3ea1d-47fa-47de-aa28-06ec615b1254").into(ivBack);
+                        ivBack.setImageResource(R.drawable.day_back);
                     } else {
-                        // night
-                        Picasso.get().load("https://www.freepik.com/free-photo/3d-tree-against-moon-night-sky_3336334.htm#query=night%20wallpaper&position=3&from_view=keyword&track=ais_user&uuid=7a70ccaf-9956-450c-b15c-72268d65f62c").into(ivBack);
+                        ivBack.setImageResource(R.drawable.night_back);
                     }
 
                     JSONObject forecastObj = response.getJSONObject("forecast");

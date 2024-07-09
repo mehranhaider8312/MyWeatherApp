@@ -40,9 +40,9 @@ public class WeatherPredictionAdapter extends ArrayAdapter<Forecast> {
 
         assert object != null;
         tvDate.setText(object.getDate());
-        tvTemp.setText(object.getDate());
-        tvCondition.setText(object.getDate());
-        Picasso.get().load(object.getIconURL()).into(ivConditionPic);
+        tvTemp.setText(object.getTemperature());
+        tvCondition.setText(object.getCondition());
+        Picasso.get().load("https:"+object.getIconURL()).into(ivConditionPic);
 
         return view;
     }

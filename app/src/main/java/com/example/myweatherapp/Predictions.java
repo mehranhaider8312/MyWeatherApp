@@ -1,8 +1,10 @@
 package com.example.myweatherapp;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -18,6 +20,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -28,6 +31,7 @@ import java.util.ArrayList;
 public class Predictions extends AppCompatActivity {
 
     ListView lvPredictions;
+    FloatingActionButton fabBack;
     WeatherPredictionAdapter adapter;
     ArrayList<Forecast> predictionsList;
     SharedPreferences sPref;
@@ -37,6 +41,13 @@ public class Predictions extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         init();
+        fabBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(Predictions.this, MainActivity.class));
+                finish();
+            }
+        });
     }
 
     public void init() {
@@ -51,13 +62,11 @@ public class Predictions extends AppCompatActivity {
         lvPredictions = findViewById(R.id.lvPredictionsList);
         predictionsList = new ArrayList<>();
         loadData();
-
+        fabBack = findViewById(R.id.fabPredicition);
     }
 
     public void loadData() {
         String cityName = sPref.getString("city_from_location", "");
-        Log.d(TAG, "City name: " + cityName);
-        Toast.makeText(this, cityName, Toast.LENGTH_SHORT).show();
         String url = "https://api.weatherapi.com/v1/forecast.json?key=2d67c27fc92e49f88bc113407240307&q="+cityName+"&days=10&aqi=yes&alerts=yes";
 
         RequestQueue requestQueue = Volley.newRequestQueue(this);
@@ -79,13 +88,10 @@ public class Predictions extends AppCompatActivity {
 
                                 forecast = new Forecast(date, condition, iconURL, temperature);
                                 predictionsList.add(forecast);
-                                Log.d(TAG, "Record #. "+i+" : "+forecast.toString());
                             }
                             adapter = new WeatherPredictionAdapter(Predictions.this, predictionsList);
                             lvPredictions.setAdapter(adapter);
-                            //adapter.notifyDataSetChanged();
 
-                             // Notify adapter of data change
                         } catch (JSONException e) {
                             Log.e(TAG, "Error parsing JSON", e);
                             Toast.makeText(Predictions.this, "Error parsing JSON", Toast.LENGTH_SHORT).show();
