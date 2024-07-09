@@ -7,54 +7,43 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class WeatherPredictionAdapter extends ArrayAdapter<Forecast> {
-
-    Context context;
-
-    public WeatherPredictionAdapter(Context context, ArrayList<Forecast> forecastList) {
-        super(context, 0);
-        this.context = context;
+    public WeatherPredictionAdapter(@NonNull Context context, @NonNull ArrayList<Forecast> objects) {
+        super(context, 0, objects);
     }
 
     @NonNull
     @Override
-    public View getView(int position, View convertView, @NonNull ViewGroup parent) {
-        Toast.makeText(context, ""+position, Toast.LENGTH_SHORT).show();
-        TextView tvForecastDate,
-        tvForecastTemperature,
-        tvForecastCondition;
-        ImageView ivForecastIcon;
+    public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
 
-        View v = convertView;
-
-        if (convertView == null) {
-            v = LayoutInflater.from(context).inflate(R.layout.single_lv_design, parent, false);
+        Forecast object = getItem(position);
+        View view =convertView;
+        if(view == null){
+            view = LayoutInflater.from(getContext()).inflate(R.layout.single_lv_design,null,false);
         }
-        tvForecastDate        = v.findViewById(R.id.tvForecastDate);
-        tvForecastTemperature = v.findViewById(R.id.tvForecastTemperature);
-        tvForecastCondition   = v.findViewById(R.id.tvForecastCondition);
-        ivForecastIcon        = v.findViewById(R.id.ivForecastIcon);
 
-        Forecast forecast = getItem(position);
-        assert forecast != null;
-        tvForecastDate.setText(forecast.getDate());
-        tvForecastTemperature.setText(forecast.getTemperature());
-        tvForecastCondition.setText(forecast.getCondition());
+        TextView tvDate,tvTemp,tvCondition;
+        ImageView ivConditionPic;
 
-        // Load weather icon using Picasso
-        Picasso.get().load(forecast.getIconURL()).into(ivForecastIcon);
+        tvDate = view.findViewById(R.id.tvForecastDate);
+        tvTemp = view.findViewById(R.id.tvForecastTemperature);
+        tvCondition = view.findViewById(R.id.tvForecastCondition);
+        ivConditionPic = view.findViewById(R.id.ivForecastIcon);
 
-        return v;
+        assert object != null;
+        tvDate.setText(object.getDate());
+        tvTemp.setText(object.getDate());
+        tvCondition.setText(object.getDate());
+        Picasso.get().load(object.getIconURL()).into(ivConditionPic);
+
+        return view;
     }
-
-
 }
