@@ -1,5 +1,7 @@
 package com.example.myweatherapp;
 
+import static android.graphics.Insets.add;
+
 import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -18,6 +20,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -48,6 +51,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,6 +76,12 @@ public class MainActivity extends AppCompatActivity {
     Button btnCuisine;
     FloatingActionButton fabForecast;
     SharedPreferences sPref;
+    public static String STR_LESS_THAN_0_SUGGESTION ;
+    public static String STR_0_TO_20_SUGGESTION;
+    public static String STR_20_TO_30_SUGGESTION;
+    public static String STR_30_TO_40_SUGGESTION;
+    public static String STR_40_TO_50_SUGGESTION;
+    public final static String FILENAME="MY_FOOD";
 
 
     @Override
@@ -139,37 +152,72 @@ public class MainActivity extends AppCompatActivity {
                 windSpeed.setText(weatherArrayList.get(0).getWindSpeed());
                 double temp = Double.parseDouble(weatherArrayList.get(0).getTemperature());
                 if (temp < 0) {
-                    food.setText("its too cold man\n" +
-                            "you should try some Soups or \n" +
-                            "Tea/Coffee with Some Dry Fruits");
+                    food.setText(STR_LESS_THAN_0_SUGGESTION);
                 } else if (temp > 0 && temp < 20) {
-                    food.setText("its a cold temperature\n" +
-                            "You should try vegetable pakora with mint chatni\n" +
-                            "Gajjar ka halwa bhee theek ha bhai");
+                    food.setText(STR_0_TO_20_SUGGESTION);
                 } else if (temp > 20 && temp < 30) {
-                    food.setText("This is a Mild temperature\n" +
-                            "You should try leafy vegies\n" +
-                            "Any kind of rice will be a great Option\n" +
-                            "with some Pepsi(Kamal Ka Taste ha Yrrrrr)");
+                    food.setText(STR_20_TO_30_SUGGESTION);
                 } else if (temp > 30 && temp < 40) {
-                    food.setText("Bhai Grami ha kuch thanda Kha" +
-                            "\nShakes Peo Juices Peo\n" +
-                            "Hmain Duaon main yaad rakho");
-                } else if (temp < 40 && temp > 50) {
-                    food.setText("Garmi Barh Rahi ha Bhai\n" +
-                            "Fresh Ganna ki Roo peo\nThandi Thandi Ace Creame khaoo" +
-                            "\nZinda Rahna ha to ghr main AC pa he batho");
-                } else {
-                    food.setText("Bhai Tujha Salam Ha\n" +
-                            "to is garmi main bhee zinda ha\n" +
-                            "Northern ka trip plan kr\n" +
-                            "Rana Waqas Sahab jaa raha hain unka sath chala ja\n" +
-                            "Khana Main tu baraf he khaoo ab");
+                    food.setText(STR_30_TO_40_SUGGESTION);
+                } else if (temp > 40 && temp < 50) {
+                    food.setText(STR_40_TO_50_SUGGESTION);
                 }
-                foodAlert.setPositiveButton("Ok :)", new DialogInterface.OnClickListener() {
+                foodAlert.setPositiveButton("Update", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
+                        AlertDialog.Builder suggestionAlert = new AlertDialog.Builder(MainActivity.this);
+                        suggestionAlert.setTitle("My Food Suggestion Dialoge box");
+                        View suggestionView = LayoutInflater.from(MainActivity.this)
+                                .inflate(R.layout.food_suggestion_update_design, null, false);
+                        EditText etOne = suggestionView.findViewById(R.id.etLessThan0);
+                        etOne.setText("for Temperature less than Zero : "+STR_LESS_THAN_0_SUGGESTION);
+
+                        EditText etTwo = suggestionView.findViewById(R.id.et0To20);
+                        etTwo.setText("for Temperature less than Zero : "+STR_0_TO_20_SUGGESTION);
+
+                        EditText etThree = suggestionView.findViewById(R.id.et20To30);
+                        etThree.setText("for Temperature less than Zero : "+STR_20_TO_30_SUGGESTION);
+
+                        EditText etFour = suggestionView.findViewById(R.id.et30To40);
+                        etFour.setText("for Temperature less than Zero : "+STR_30_TO_40_SUGGESTION);
+
+                        EditText etFive = suggestionView.findViewById(R.id.et40To50);
+                        etFive.setText("for Temperature less than Zero : "+STR_40_TO_50_SUGGESTION);
+                        suggestionAlert.setView(suggestionView);
+
+                        suggestionAlert.setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+                                if(TextUtils.isEmpty(STR_0_TO_20_SUGGESTION)){
+                                    etOne.setError("Must Write something here");
+                                    return;
+                                }
+                                if(TextUtils.isEmpty(STR_0_TO_20_SUGGESTION)){
+                                    etTwo.setError("Must Write something here");
+                                    return;
+                                }
+                                if(TextUtils.isEmpty(STR_20_TO_30_SUGGESTION)){
+                                    etThree.setError("Must Write something here");
+                                    return;
+                                }
+                                if(TextUtils.isEmpty(STR_30_TO_40_SUGGESTION)){
+                                    etFour.setError("Must Write something here");
+                                    return;
+                                }
+                                if(TextUtils.isEmpty(STR_40_TO_50_SUGGESTION)){
+                                    etFive.setError("Must Write something here");
+                                    return;
+                                }
+                                STR_LESS_THAN_0_SUGGESTION=etOne.getText().toString().trim();
+                                STR_0_TO_20_SUGGESTION=etTwo.getText().toString().trim();
+                                STR_20_TO_30_SUGGESTION=etThree.getText().toString().trim();
+                                STR_30_TO_40_SUGGESTION=etFour.getText().toString().trim();
+                                STR_40_TO_50_SUGGESTION=etFive.getText().toString().trim();
+                                writeOnFile();
+                            }
+                        }).show();
                     }
                 });
                 foodAlert.setView(alertView);
@@ -213,6 +261,7 @@ public class MainActivity extends AppCompatActivity {
         btnCuisine = findViewById(R.id.btnCuisine);
         fabForecast = findViewById(R.id.fabPredicition);
         sPref = getSharedPreferences("mylocationfile",MODE_PRIVATE);
+        //readFromFile();
 
     }
 
@@ -268,7 +317,6 @@ public class MainActivity extends AppCompatActivity {
                     String condition = response.getJSONObject("current").getJSONObject("condition").getString("text");
                     String conditionIcon = response.getJSONObject("current").getJSONObject("condition").getString("icon");
                     String iconUrl = "https:" + conditionIcon;
-                    Log.d("WeatherApp", "Icon URL: " + iconUrl);
                     Picasso.get().load(iconUrl).into(ivIcon);
                     tvCondition.setText(condition);
 
@@ -287,7 +335,7 @@ public class MainActivity extends AppCompatActivity {
                         String time = hourObj.getString("time");
                         String temp = hourObj.getString("temp_c");
                         String windSpeed = hourObj.getString("wind_kph");
-                        String hourIconUrl = "https:" + hourObj.getJSONObject("condition").getString("icon");
+                        String hourIconUrl = hourObj.getJSONObject("condition").getString("icon");
                         weatherArrayList.add(new Weather(time, temp, hourIconUrl, windSpeed));
                     }
                     adapter.notifyDataSetChanged();
@@ -304,4 +352,77 @@ public class MainActivity extends AppCompatActivity {
 
         requestQueue.add(jsonObjectRequest);
     }
+
+     public void writeOnFile()
+    {
+        FileWriter fw = null;
+        BufferedWriter bw = null;
+        try{
+            fw = new FileWriter("MY_FOOD", true);
+            bw = new BufferedWriter(fw);
+            bw.write(STR_LESS_THAN_0_SUGGESTION+"\n"+STR_0_TO_20_SUGGESTION+"\n"+STR_20_TO_30_SUGGESTION+
+                    "\n"+STR_30_TO_40_SUGGESTION+"\n"+STR_40_TO_50_SUGGESTION);
+            bw.newLine();
+        }
+        catch(IOException e)
+        {
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+        finally{
+            if(bw != null)
+            {
+                try {
+                    bw.close();
+                } catch (IOException ex) {
+                    Toast.makeText(this, ex.getMessage(), Toast.LENGTH_SHORT).show();                }
+            }
+            if(fw != null){
+                try {
+                    fw.close();
+                } catch (IOException ex) {
+                    Toast.makeText(this, ex.getMessage(), Toast.LENGTH_SHORT).show();                }
+            }
+        }
+    }
+    public void readFromFile()
+    {
+        FileReader fr = null;
+        BufferedReader br = null;
+        try{
+            fr = new FileReader("MY_FOOD");
+            br = new BufferedReader(fr);
+            String line;
+            while((line = br.readLine())!=null)
+            {
+                String[] arr = line.split("\n");
+                STR_LESS_THAN_0_SUGGESTION = arr[0];
+                STR_0_TO_20_SUGGESTION = arr[1];
+                STR_20_TO_30_SUGGESTION = arr[2];
+                STR_30_TO_40_SUGGESTION = arr[3];
+                STR_40_TO_50_SUGGESTION = arr[5];
+            }
+        }catch(IOException ex)
+        {
+            Toast.makeText(this, ex.getMessage(), Toast.LENGTH_SHORT).show();        }
+        finally{
+            if(br!= null)
+            {
+                try {
+                    br.close();
+                } catch (IOException ex) {
+                    Toast.makeText(this, ex.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }
+            if(fr != null){
+                try {
+                    fr.close();
+                } catch (IOException ex) {
+                    Toast.makeText(this, ex.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+    }
+
+
+
 }
