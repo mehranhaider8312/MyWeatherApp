@@ -121,16 +121,6 @@
             android:textAlignment="center"
             android:textColor="@color/white" />
 
-        <Button
-            android:id="@+id/btnCuisine"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/tvCondition"
-            android:layout_marginLeft="50dp"
-            android:layout_marginTop="50dp"
-            android:layout_marginRight="50dp"
-            android:text="Show Related Cuisine" />
-
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -155,8 +145,9 @@
             android:id="@+id/fabPredicition"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/btnCuisine"
+            android:layout_below="@id/tvCondition"
             android:layout_marginTop="10dp"
+            app:backgroundTint="@android:color/transparent"
             android:layout_centerInParent="true"
             app:srcCompat="@drawable/app_launcher"
             tools:ignore="ContentDescription" />
